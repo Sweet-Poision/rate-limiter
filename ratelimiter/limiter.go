@@ -15,37 +15,64 @@ import (
 	"time"
 )
 
-const ALLOWED_PER_SECOND int = 10
-const MAX_LIMIT_BUCKET int = 5
-const REFILL_WAIT_TIME_MS int = 1000 / ALLOWED_PER_SECOND   // miliseconds
 
-var (
-	mp 		map[int] chan struct{}
-	mu 		sync.RWMutex
-	started bool = false
-)	// We as of now are using single map
+type tokenData struct {
+	refil_wait_time_ms int
+	max_limit_bucket int
+}
 
-func allow(userId int) bool {
+type key struct {
+	userID int
+	endpoint string
+}
+
+type value struct {
+	tokens chan struct {}
+	endpoint string
+}
+
+var  (
+	timeMap map[string] tokenData
+	timeMapMu sync.RWMutex
+	mp map[key] *value
+	mu sync.RWMutex
+	started bool = false	
+)
+
+
+func allow(userId int, endpoint string) bool {
 	if(!started) {
 		return false;
 	}
+	userKey := key{userId, endpoint}
 	mu.RLock()
-	var data, ok = mp[userId]
+	var data, ok = mp[userKey]
 	mu.RUnlock()
 	
 	if(!ok) {
 		mu.Lock()
-		if data, ok = mp[userId]; !ok {
-			data = make(chan struct{}, MAX_LIMIT_BUCKET)
-			for i:=0; i < MAX_LIMIT_BUCKET; i++ {
-				data <- struct{}{}
+		if data, ok = mp[userKey]; !ok {
+			timeMapMu.RLock()
+			x, epOk := timeMap[endpoint]
+			timeMapMu.RUnlock()
+			if !epOk {
+				mu.Unlock()
+				return false
 			}
-			mp[userId] = data
+			limit := x.max_limit_bucket
+			
+			data = &value{make(chan struct{}, limit), endpoint}
+			for i:=0; i < limit; i++ {
+				data.tokens <- struct{}{}
+			}
+			mp[userKey] = data
+			go refill(userKey)
 		}
 		mu.Unlock()
+		
 	}
 	select {
-		case <- data:
+		case <- data.tokens:
 			return true
 		default:
 			return false
@@ -53,27 +80,45 @@ func allow(userId int) bool {
 	
 }
 
-func refill() {
+func refill(userKey key) {
 	// refilling locks the map, if the map size is too big, then it will cause issue for new user creation. Thus we need to have multiple maps sharded
-	mu.RLock()
-	for _, val := range mp {
+	for {
+		
+		mu.RLock()
+		val, ok := mp[userKey]
+		mu.RUnlock()
+
+		if !ok {
+			return
+		}
+		
+		timeMapMu.RLock()
+		sleepTimeMS := timeMap[val.endpoint].refil_wait_time_ms
+		timeMapMu.RUnlock()
+	
+		time.Sleep(time.Millisecond * time.Duration(sleepTimeMS))
+	
 		select {
-			case val <- struct{}{}:
+			case val.tokens <- struct{}{}:
 			default:
 		}
 	}
-	mu.RUnlock()
 }
 
 
-func rateLimiter() {
-	mp = make(map[int]chan struct{})
-	started = true
-	go func() {
-		for {
-			time.Sleep(time.Millisecond * time.Duration(REFILL_WAIT_TIME_MS))
-			refill()
-		}
-	}()
+func initTimeMap() {
+	timeMapMu.Lock()
+	timeMap["api/v1/health1"] = tokenData{100, 5}
+	timeMap["api/v1/health2"] = tokenData{200, 10}
+	timeMap["api/v1/health3"] = tokenData{250, 12}
+	timeMap["api/v1/health4"] = tokenData{400, 25}
+	timeMapMu.Unlock()
+}
 
+func rateLimiter() {
+	mp = make(map[key] * value)
+	timeMap = make(map[string] tokenData)
+	initTimeMap()
+
+	started = true
 }

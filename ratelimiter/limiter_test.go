@@ -7,66 +7,96 @@ import (
 	"time"
 )
 
+// setup initializes the rate limiter before each test
+// setup initializes the rate limiter before each test
 func setup() {
+	// 1. Lock and reset the main user map
 	mu.Lock()
-	mp = make(map[int]chan struct{})
+	mp = make(map[key]*value)
 	started = true
 	mu.Unlock()
+
+	// 2. Separately lock and reset the endpoint configuration map
+	timeMapMu.Lock()
+	timeMap = make(map[string]tokenData)
+	timeMap["api/v1/test"] = tokenData{refil_wait_time_ms: 50, max_limit_bucket: 5}
+	timeMapMu.Unlock()
 }
 
 func TestBurstThenDeny(t *testing.T) {
 	setup()
 	userId := 1
+	endpoint := "api/v1/test"
 
-	for i := 0; i < MAX_LIMIT_BUCKET; i++ {
-		if !allow(userId) {
+	// 1. Consume the exact burst limit (5)
+	for i := 0; i < 5; i++ {
+		if !allow(userId, endpoint) {
 			t.Fatalf("Expected call %d to be allowed, but it was denied", i+1)
 		}
 	}
 
-	if allow(userId) {
-		t.Fatalf("Expected call %d to be denied, but it was allowed", MAX_LIMIT_BUCKET+1)
+	// 2. The 6th call should immediately fail
+	if allow(userId, endpoint) {
+		t.Fatalf("Expected call 6 to be denied, but it was allowed")
 	}
 }
 
 func TestRefillActuallyWorks(t *testing.T) {
 	setup()
 	userId := 2
+	endpoint := "api/v1/test"
 
-	for i := 0; i < MAX_LIMIT_BUCKET; i++ {
-		allow(userId)
+	// 1. Drain the bucket
+	for i := 0; i < 5; i++ {
+		allow(userId, endpoint)
 	}
 
-	if allow(userId) {
+	// 2. Verify we are denied
+	if allow(userId, endpoint) {
 		t.Fatal("Expected to be denied after draining bucket")
 	}
 
-	time.Sleep(time.Millisecond * time.Duration(REFILL_WAIT_TIME_MS) * 2)
-	refill()
+	// 3. Wait slightly longer than the 50ms refill time
+	time.Sleep(time.Millisecond * 75)
 
-	if !allow(userId) {
+	// 4. Verify we are allowed again
+	if !allow(userId, endpoint) {
 		t.Fatal("Expected to be allowed after refill, but was denied")
 	}
 }
 
 func TestConcurrentAccess(t *testing.T) {
 	setup()
-	userId := 0
+	userId := 3
+	endpoint := "api/v1/test"
 
 	var wg sync.WaitGroup
 	var successCount int64 = 0
-	goroutingCount := 100
-	wg.Add(goroutingCount)
-	for i := 0; i < goroutingCount; i++ {
+	goroutineCount := 100
+
+	wg.Add(goroutineCount)
+	for i := 0; i < goroutineCount; i++ {
 		go func() {
 			defer wg.Done()
-			if allow(userId) {
+			if allow(userId, endpoint) {
 				atomic.AddInt64(&successCount, 1)
 			}
 		}()
 	}
 	wg.Wait()
-	if successCount != int64(MAX_LIMIT_BUCKET) {
-		t.Fatalf("Expected exactly %d successful requests, but got %d", MAX_LIMIT_BUCKET, successCount)
+
+	// Since the bucket starts full with 5, exactly 5 should succeed
+	if successCount != 5 {
+		t.Fatalf("Expected exactly 5 successful requests, but got %d", successCount)
+	}
+}
+
+func TestUnknownEndpoint(t *testing.T) {
+	setup()
+	userId := 4
+	
+	// This endpoint does not exist in our timeMap
+	if allow(userId, "api/v1/unknown") {
+		t.Fatal("Expected request to unknown endpoint to be denied, but it was allowed")
 	}
 }
