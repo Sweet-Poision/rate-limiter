@@ -49,7 +49,7 @@ var (
 	started bool = false
 )
 
-func allow(userId int, endpoint string) bool {
+func Allow(userId int, endpoint string) bool {
 	if !started {
 		return false
 	}
@@ -136,7 +136,7 @@ func initMaps(eps []payload) {
 	}
 }
 
-func rateLimiter() {
+func RateLimiter() {
 	mp = make(map[key]chan struct{})
 	listOfEndpoints := []payload{
 		payload{

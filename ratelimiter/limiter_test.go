@@ -35,14 +35,14 @@ func TestBurstThenDeny(t *testing.T) {
 
 	// 1. Consume the exact burst limit (5)
 	for i := 0; i < 5; i++ {
-		if !allow(userId, endpoint) {
-			t.Fatalf("Expected call %d to be allowed, but it was denied", i+1)
+		if !Allow(userId, endpoint) {
+			t.Fatalf("Expected call %d to be Allowed, but it was denied", i+1)
 		}
 	}
 
 	// 2. The 6th call should immediately fail (0 TTL)
-	if allow(userId, endpoint) {
-		t.Fatalf("Expected call 6 to be denied, but it was allowed")
+	if Allow(userId, endpoint) {
+		t.Fatalf("Expected call 6 to be denied, but it was Allowed")
 	}
 }
 
@@ -53,20 +53,20 @@ func TestRefillActuallyWorks(t *testing.T) {
 
 	// 1. Drain the bucket
 	for i := 0; i < 5; i++ {
-		allow(userId, endpoint)
+		Allow(userId, endpoint)
 	}
 
 	// 2. Verify we are denied
-	if allow(userId, endpoint) {
+	if Allow(userId, endpoint) {
 		t.Fatal("Expected to be denied after draining bucket")
 	}
 
 	// 3. Wait slightly longer than the 50ms refill time
 	time.Sleep(time.Millisecond * 75)
 
-	// 4. Verify we are allowed again
-	if !allow(userId, endpoint) {
-		t.Fatal("Expected to be allowed after refill, but was denied")
+	// 4. Verify we are Allowed again
+	if !Allow(userId, endpoint) {
+		t.Fatal("Expected to be Allowed after refill, but was denied")
 	}
 }
 
@@ -84,7 +84,7 @@ func TestConcurrentAccess(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			// Using 0 TTL so requests fail immediately if no token
-			if allow(userId, endpoint) {
+			if Allow(userId, endpoint) {
 				atomic.AddInt64(&successCount, 1)
 			}
 		}()
@@ -102,7 +102,7 @@ func TestUnknownEndpoint(t *testing.T) {
 	userId := 4
 
 	// This endpoint does not exist in our maps
-	if allow(userId, "api/v1/unknown") {
-		t.Fatal("Expected request to unknown endpoint to be denied, but it was allowed")
+	if Allow(userId, "api/v1/unknown") {
+		t.Fatal("Expected request to unknown endpoint to be denied, but it was Allowed")
 	}
 }
