@@ -8,19 +8,24 @@ import (
 )
 
 // setup initializes the rate limiter before each test
-// setup initializes the rate limiter before each test
 func setup() {
-	// 1. Lock and reset the main user map
 	mu.Lock()
-	mp = make(map[key]*value)
+	mp = make(map[key]chan struct{})
 	started = true
 	mu.Unlock()
 
-	// 2. Separately lock and reset the endpoint configuration map
+	epName := "api/v1/test"
+	id := 1
+
 	timeMapMu.Lock()
-	timeMap = make(map[string]tokenData)
-	timeMap["api/v1/test"] = tokenData{refil_wait_time_ms: 50, max_limit_bucket: 5}
+	timeMap = make(map[int]tokenData)
+	timeMap[id] = tokenData{refilWaitTimeMS: 50, maxLimitBucket: 5}
 	timeMapMu.Unlock()
+
+	epMu.Lock()
+	endpoints = make(map[string]int)
+	endpoints[epName] = id
+	epMu.Unlock()
 }
 
 func TestBurstThenDeny(t *testing.T) {
@@ -35,7 +40,7 @@ func TestBurstThenDeny(t *testing.T) {
 		}
 	}
 
-	// 2. The 6th call should immediately fail
+	// 2. The 6th call should immediately fail (0 TTL)
 	if allow(userId, endpoint) {
 		t.Fatalf("Expected call 6 to be denied, but it was allowed")
 	}
@@ -78,6 +83,7 @@ func TestConcurrentAccess(t *testing.T) {
 	for i := 0; i < goroutineCount; i++ {
 		go func() {
 			defer wg.Done()
+			// Using 0 TTL so requests fail immediately if no token
 			if allow(userId, endpoint) {
 				atomic.AddInt64(&successCount, 1)
 			}
@@ -94,8 +100,8 @@ func TestConcurrentAccess(t *testing.T) {
 func TestUnknownEndpoint(t *testing.T) {
 	setup()
 	userId := 4
-	
-	// This endpoint does not exist in our timeMap
+
+	// This endpoint does not exist in our maps
 	if allow(userId, "api/v1/unknown") {
 		t.Fatal("Expected request to unknown endpoint to be denied, but it was allowed")
 	}
