@@ -20,6 +20,8 @@ func limitedHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	ratelimiter.RateLimiter()
+	ratelimiter.InitRedis()
+	ratelimiter.TestRedis()
 
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/limited", middleware.RateLimitingMiddleware(limitedHandler))
