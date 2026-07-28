@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"ratelimiter/server/middleware"
-	"ratelimiter/server/ratelimiter"
 
-	"github.com/joho/godotenv"
+	"ratelimiter/internal/config"
+	"ratelimiter/internal/domain"
+	"ratelimiter/internal/limiter"
+	"ratelimiter/internal/middleware"
+	"ratelimiter/internal/repository"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,24 +20,35 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func limitedHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Request successsful! Rate limit passed."))
+	w.Write([]byte("Request successful! Rate limit passed."))
 }
 
 func main() {
+	cfg := config.Load()
 
-	err := godotenv.Load()
+	dbStore, err := repository.NewPostgresStore(cfg.DatabaseURL)
 	if err != nil {
-		log.Println("No .env file found. Relying on system environment variables.")
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	ratelimiter.InitDB()
-	ratelimiter.InitRedis()
+	redisStore := repository.NewRedisStore(cfg.RedisAddr)
 
-	ratelimiter.RateLimiter()
+	initialEndpoints, err := dbStore.LoadAllEndpoints()
+	if err != nil {
+		log.Fatalf("Failed to load initial endpoints: %v", err)
+	}
+
+	registry := limiter.NewRegistry(dbStore, initialEndpoints)
+
+	updateChan := make(chan domain.EndpointData)
+	go redisStore.ListenForUpdates(context.Background(), updateChan)
+	go registry.HandlePubSubUpdates(updateChan)
+
+	rlMiddleware := middleware.NewRateLimiter(registry, redisStore)
 
 	http.HandleFunc("/health", healthHandler)
-	http.HandleFunc("/limited", middleware.RateLimitingMiddleware(limitedHandler))
+	http.HandleFunc("/api/", rlMiddleware.Handle(limitedHandler))
 
-	fmt.Println("Server listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Printf("Server listening on port %s...\n", cfg.ServerPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
 }
