@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS endpoints (
+    path VARCHAR(255) PRIMARY KEY,
+    refil_wait_time_ms INTEGER NOT NULL,
+    max_limit INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,6 +1,10 @@
 package ratelimiter
 
-import "time"
+import (
+	"time"
+	"database/sql"
+	"golang.org/x/sync/singleflight"
+)
 
 const (
 	SHARD_SIZE = 256
@@ -16,7 +20,50 @@ var (
 	started            bool
 	availableEndpoints safeEndpointRegistry
 	shardMaps          shardedStorage
+	sfGroup				singleflight.Group
 )
+
+func GetEndpoint(path string) (endpointData, error) {
+	availableEndpoints.mu.RLock()
+	data, exists := availableEndpoints.endpoints[path]
+	availableEndpoints.mu.RUnlock()
+
+	if exists {
+		return data, nil
+	}
+
+	val, err, _ := sfGroup.Do(path, func() (interface{}, error) {
+		availableEndpoints.mu.RLock()
+		data, exists := availableEndpoints.endpoints[path]
+		availableEndpoints.mu.RUnlock()
+
+		if(exists) {
+			return data, nil
+		}
+
+		var d endpointData
+		query := "SELECT refil_wait_time_ms, max_limit FROM endpoints WHERE path = $1"
+		err := db.QueryRow(query, path).Scan(&d.refilWaitTimeMS, &d.maxLimitBucket)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return endpointData{}, err
+			}
+			return endpointData{}, err
+		}
+
+		availableEndpoints.mu.Lock()
+		availableEndpoints.endpoints[path] = d
+		availableEndpoints.mu.Unlock()
+
+		return d, nil
+	})
+
+	if err != nil {
+		return endpointData{}, err
+	}
+
+	return val.(endpointData), nil
+}
 
 func Allow(userId int, endpoint string) bool {
 	if !started {
@@ -66,16 +113,17 @@ func Allow(userId int, endpoint string) bool {
 
 func RateLimiter() {
 	started = false
-	shardMaps = NewShardedStorage(SHARD_SIZE, CAPACITY)
+	// shardMaps = NewShardedStorage(SHARD_SIZE, CAPACITY)
 
 	availableEndpoints = safeEndpointRegistry{
 		endpoints: make(map[string]endpointData),
 	}
 
-	availableEndpoints.endpoints["api/v1/health1"] = endpointData{refilWaitTimeMS: 100, maxLimitBucket: 5}
-	availableEndpoints.endpoints["api/v1/health2"] = endpointData{refilWaitTimeMS: 200, maxLimitBucket: 10}
+	// availableEndpoints.endpoints["api/v1/health1"] = endpointData{refilWaitTimeMS: 100, maxLimitBucket: 5}
+	// availableEndpoints.endpoints["api/v1/health2"] = endpointData{refilWaitTimeMS: 200, maxLimitBucket: 10}
 
-	StartTTLWorker(time.Minute*1, TTL_MS)
+	// StartTTLWorker(time.Minute*1, TTL_MS)
+	LoadEndpointsFromDB()
 
 	started = true
 }
