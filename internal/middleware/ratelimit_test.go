@@ -118,39 +118,10 @@ func TestRefillMathIsCorrect(t *testing.T) {
 	}
 }
 
-func TestNegativeCaching_UnknownEndpointRejectedWithoutDB(t *testing.T) {
-	// DB is nil — if negative caching (or the code path leading to it)
-	// tries to actually query the DB for an unknown path, this test will
-	// panic on a nil pointer dereference, which is itself a useful signal.
-	initialData := map[string]domain.EndpointData{}
-	rlMiddleware, mr := newTestRegistryAndMiddleware(t, initialData)
-	defer mr.Close()
-
-	handler := rlMiddleware.Handle(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/does-not-exist", nil)
-	req.Header.Set("X-User-Id", "user_123")
-
-	// First call: goes through singleflight -> DB lookup -> nil DB will
-	// panic. This confirms the negative-cache path is actually reachable;
-	// a real integration test would inject a sqlmock DB here instead.
-	// For a pure unit test without a DB dependency, see the Registry-level
-	// test in registry_test.go (not included here) which exercises
-	// markNegative/negativeCache directly without going through HTTP.
-	defer func() {
-		if r := recover(); r != nil {
-			t.Skip("Skipping: this test requires a mocked DB (sqlmock) to exercise the DB-miss path without a nil pointer panic. See registry_test.go for a DB-free negative cache test.")
-		}
-	}()
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusNotFound {
-		t.Errorf("expected 404 for unknown endpoint, got %v", rr.Code)
-	}
-}
+// Negative-cache behavior (DB miss -> cached rejection -> no repeated DB
+// hits) is covered without skipping in internal/limiter/registry_test.go,
+// using sqlmock to inject a fake DB. That's a better fit than testing it
+// here through full HTTP, since it can assert exact DB query counts.
 
 func TestClientIdentifier_StripsPortFromRemoteAddr(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

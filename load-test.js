@@ -2,10 +2,49 @@ import http from 'k6/http';
 import { check } from 'k6';
 import { Rate } from 'k6/metrics';
 
-// Custom metrics, split by scenario so the terminal summary tells you
-// exactly which traffic pattern is behaving how — a single blended
-// success/fail rate hides whether it's the auth path, anon path, or
-// negative-cache path that's misbehaving.
+// Reads LOAD_LEVEL from the environment (set via the Job manifest's env,
+// or `k6 run -e LOAD_LEVEL=low load-test.js` when running locally).
+// Defaults to 'medium' if unset or unrecognized.
+const LOAD_LEVEL = __ENV.LOAD_LEVEL || 'medium';
+
+const LEVELS = {
+    low: {
+        authStages: [
+            { duration: '10s', target: 10 },
+            { duration: '15s', target: 10 },
+            { duration: '10s', target: 20 },
+            { duration: '10s', target: 0 },
+        ],
+        anonVUs: 5,
+        unknownRate: 20,
+        unknownMaxVUs: 20,
+    },
+    medium: {
+        authStages: [
+            { duration: '10s', target: 100 },
+            { duration: '15s', target: 100 },
+            { duration: '10s', target: 300 },
+            { duration: '10s', target: 0 },
+        ],
+        anonVUs: 20,
+        unknownRate: 100,
+        unknownMaxVUs: 100,
+    },
+    heavy: {
+        authStages: [
+            { duration: '10s', target: 100 },
+            { duration: '15s', target: 100 },
+            { duration: '10s', target: 3000 },
+            { duration: '10s', target: 0 },
+        ],
+        anonVUs: 20,
+        unknownRate: 200,
+        unknownMaxVUs: 200,
+    },
+};
+
+const cfg = LEVELS[LOAD_LEVEL] || LEVELS.medium;
+
 export const authSuccess = new Rate('auth_success_200');
 export const authLimited = new Rate('auth_limited_429');
 export const anonSuccess = new Rate('anon_success_200');
@@ -15,45 +54,32 @@ export const errorRate = new Rate('errors_5xx');
 
 export const options = {
     scenarios: {
-        // Authenticated traffic: many distinct users via X-User-Id, should
-        // see mostly 200s with per-user 429s only under sustained abuse.
         authenticated_traffic: {
             executor: 'ramping-vus',
             exec: 'authenticatedRequest',
             startVUs: 0,
-            stages: [
-                { duration: '10s', target: 100 },
-                { duration: '15s', target: 100 },
-                { duration: '10s', target: 3000 }, // spike
-                { duration: '10s', target: 0 },
-            ],
+            stages: cfg.authStages,
         },
-        // Anonymous traffic: no X-User-Id, falls back to IP-based limiting.
-        // Since k6 VUs typically share a source IP in local testing, this
-        // scenario specifically exercises whether the IP-fallback key
-        // (post net.SplitHostPort fix) rate-limits as a single shared
-        // identity — which is the expected, documented behavior.
         anonymous_traffic: {
             executor: 'constant-vus',
             exec: 'anonymousRequest',
-            vus: 20,
+            vus: cfg.anonVUs,
             duration: '35s',
         },
-        // Traffic to endpoints that don't exist — exercises the negative
-        // cache path. Watch DB query volume (if you're logging it) during
-        // this scenario: it should stay flat after the first ~30s TTL
-        // window fills the negative cache, not scale with request volume.
         unknown_endpoint_traffic: {
             executor: 'constant-arrival-rate',
             exec: 'unknownEndpointRequest',
-            rate: 200,
+            rate: cfg.unknownRate,
             timeUnit: '1s',
             duration: '35s',
-            preAllocatedVUs: 50,
-            maxVUs: 200,
+            preAllocatedVUs: Math.min(cfg.unknownMaxVUs, 20),
+            maxVUs: cfg.unknownMaxVUs,
         },
     },
     thresholds: {
+        // Deliberately kept the same strict target across all three tiers.
+        // The point of low/medium/heavy is to see WHERE this threshold
+        // starts failing, not to loosen it until everything passes.
         http_req_duration: ['p(95)<50'],
     },
 };
@@ -72,7 +98,7 @@ function pickEndpoint() {
 
 export function authenticatedRequest() {
     const randomUser = Math.floor(Math.random() * 10000);
-    const res = http.get(`http://localhost:8080${pickEndpoint()}`, {
+    const res = http.get(`http://ratelimiter:8080${pickEndpoint()}`, {
         headers: { 'X-User-Id': `test_user_${randomUser}` },
     });
 
@@ -86,8 +112,7 @@ export function authenticatedRequest() {
 }
 
 export function anonymousRequest() {
-    // Deliberately no X-User-Id header — exercises the IP-based fallback.
-    const res = http.get(`http://localhost:8080${pickEndpoint()}`);
+    const res = http.get(`http://ratelimiter:8080${pickEndpoint()}`);
 
     check(res, {
         'anon: status is 200 or 429': (r) => r.status === 200 || r.status === 429,
@@ -99,7 +124,7 @@ export function anonymousRequest() {
 }
 
 export function unknownEndpointRequest() {
-    const res = http.get(`http://localhost:8080/api/v1/definitely/not/a/real/endpoint`);
+    const res = http.get(`http://ratelimiter:8080/api/v1/definitely/not/a/real/endpoint`);
 
     check(res, {
         'unknown: status is 404': (r) => r.status === 404,

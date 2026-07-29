@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"net"
 	"net/http"
+	"strconv"
+
 	"ratelimiter/internal/limiter"
 	"ratelimiter/internal/metrics"
 	"ratelimiter/internal/repository"
@@ -62,7 +64,15 @@ func (rl *RateLimiter) Handle(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		if !allowed {
-			w.Header().Set("Retry-After", "1")
+			// Retry-After is derived from this endpoint's actual refill
+			// rate, rounded up to whole seconds (the header's unit).
+			// A sub-second refill rate still reports a minimum of 1 second
+			// — "retry in 0 seconds" isn't actionable for a client.
+			retrySeconds := (endpointConfig.RefillWaitTimeMS + 999) / 1000
+			if retrySeconds < 1 {
+				retrySeconds = 1
+			}
+			w.Header().Set("Retry-After", strconv.Itoa(retrySeconds))
 			metrics.RequestsTotal.WithLabelValues("rate_limited").Inc()
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return

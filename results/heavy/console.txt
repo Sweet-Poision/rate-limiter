@@ -1,0 +1,299 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /scripts/load-test.js
+ web dashboard: http://127.0.0.1:5665
+        output: -
+
+     scenarios: (100.00%) 3 scenarios, 3220 max VUs, 1m15s max duration (incl. graceful stop):
+              * anonymous_traffic: 20 looping VUs for 35s (exec: anonymousRequest, gracefulStop: 30s)
+              * authenticated_traffic: Up to 3000 looping VUs for 45s over 4 stages (gracefulRampDown: 30s, exec: authenticatedRequest, gracefulStop: 30s)
+              * unknown_endpoint_traffic: 200.00 iterations/s for 35s (maxVUs: 20-200, exec: unknownEndpointRequest, gracefulStop: 30s)
+
+
+running (0m00.5s), 0025/3040 VUs, 11594 complete and 0 interrupted iterations
+anonymous_traffic          [   1% ] 20 VUs         00.5s/35s 
+authenticated_traffic      [   1% ] 0005/3000 VUs  00.5s/45.0s
+unknown_endpoint_traffic   [   1% ] 000/020 VUs    00.5s/35s  200.00 iters/s
+
+running (0m01.5s), 0035/3040 VUs, 34744 complete and 0 interrupted iterations
+anonymous_traffic          [   4% ] 20 VUs         01.5s/35s 
+authenticated_traffic      [   3% ] 0015/3000 VUs  01.5s/45.0s
+unknown_endpoint_traffic   [   4% ] 000/020 VUs    01.5s/35s  200.00 iters/s
+
+running (0m02.5s), 0046/3040 VUs, 63329 complete and 0 interrupted iterations
+anonymous_traffic          [   7% ] 20 VUs         02.5s/35s 
+authenticated_traffic      [   6% ] 0025/3000 VUs  02.5s/45.0s
+unknown_endpoint_traffic   [   7% ] 001/020 VUs    02.5s/35s  200.00 iters/s
+
+running (0m03.5s), 0056/3040 VUs, 85105 complete and 0 interrupted iterations
+anonymous_traffic          [  10% ] 20 VUs         03.5s/35s 
+authenticated_traffic      [   8% ] 0035/3000 VUs  03.5s/45.0s
+unknown_endpoint_traffic   [  10% ] 001/020 VUs    03.5s/35s  200.00 iters/s
+
+running (0m04.5s), 0066/3040 VUs, 108749 complete and 0 interrupted iterations
+anonymous_traffic          [  13% ] 20 VUs         04.5s/35s 
+authenticated_traffic      [  10% ] 0045/3000 VUs  04.5s/45.0s
+unknown_endpoint_traffic   [  13% ] 001/020 VUs    04.5s/35s  200.00 iters/s
+
+running (0m05.5s), 0075/3040 VUs, 133532 complete and 0 interrupted iterations
+anonymous_traffic          [  16% ] 20 VUs         05.5s/35s 
+authenticated_traffic      [  12% ] 0055/3000 VUs  05.5s/45.0s
+unknown_endpoint_traffic   [  16% ] 000/020 VUs    05.5s/35s  200.00 iters/s
+
+running (0m06.5s), 0085/3040 VUs, 157888 complete and 0 interrupted iterations
+anonymous_traffic          [  19% ] 20 VUs         06.5s/35s 
+authenticated_traffic      [  14% ] 0065/3000 VUs  06.5s/45.0s
+unknown_endpoint_traffic   [  19% ] 000/020 VUs    06.5s/35s  200.00 iters/s
+
+running (0m07.5s), 0096/3040 VUs, 181310 complete and 0 interrupted iterations
+anonymous_traffic          [  21% ] 20 VUs         07.5s/35s 
+authenticated_traffic      [  17% ] 0075/3000 VUs  07.5s/45.0s
+unknown_endpoint_traffic   [  21% ] 001/020 VUs    07.5s/35s  200.00 iters/s
+
+running (0m08.5s), 0105/3040 VUs, 198686 complete and 0 interrupted iterations
+anonymous_traffic          [  24% ] 20 VUs         08.5s/35s 
+authenticated_traffic      [  19% ] 0085/3000 VUs  08.5s/45.0s
+unknown_endpoint_traffic   [  24% ] 000/020 VUs    08.5s/35s  200.00 iters/s
+
+running (0m09.5s), 0117/3040 VUs, 219450 complete and 0 interrupted iterations
+anonymous_traffic          [  27% ] 20 VUs         09.5s/35s 
+authenticated_traffic      [  21% ] 0095/3000 VUs  09.5s/45.0s
+unknown_endpoint_traffic   [  27% ] 002/020 VUs    09.5s/35s  200.00 iters/s
+
+running (0m10.5s), 0120/3040 VUs, 230270 complete and 0 interrupted iterations
+anonymous_traffic          [  30% ] 20 VUs         10.5s/35s 
+authenticated_traffic      [  23% ] 0100/3000 VUs  10.5s/45.0s
+unknown_endpoint_traffic   [  30% ] 000/020 VUs    10.5s/35s  200.00 iters/s
+
+running (0m11.5s), 0121/3040 VUs, 242826 complete and 0 interrupted iterations
+anonymous_traffic          [  33% ] 20 VUs         11.5s/35s 
+authenticated_traffic      [  26% ] 0100/3000 VUs  11.5s/45.0s
+unknown_endpoint_traffic   [  33% ] 001/020 VUs    11.5s/35s  200.00 iters/s
+
+running (0m12.5s), 0120/3040 VUs, 256844 complete and 0 interrupted iterations
+anonymous_traffic          [  36% ] 20 VUs         12.5s/35s 
+authenticated_traffic      [  28% ] 0100/3000 VUs  12.5s/45.0s
+unknown_endpoint_traffic   [  36% ] 000/020 VUs    12.5s/35s  200.00 iters/s
+
+running (0m13.5s), 0120/3040 VUs, 278493 complete and 0 interrupted iterations
+anonymous_traffic          [  39% ] 20 VUs         13.5s/35s 
+authenticated_traffic      [  30% ] 0100/3000 VUs  13.5s/45.0s
+unknown_endpoint_traffic   [  39% ] 000/020 VUs    13.5s/35s  200.00 iters/s
+
+running (0m14.5s), 0121/3040 VUs, 298299 complete and 0 interrupted iterations
+anonymous_traffic          [  41% ] 20 VUs         14.5s/35s 
+authenticated_traffic      [  32% ] 0100/3000 VUs  14.5s/45.0s
+unknown_endpoint_traffic   [  41% ] 001/020 VUs    14.5s/35s  200.00 iters/s
+
+running (0m15.5s), 0121/3040 VUs, 318079 complete and 0 interrupted iterations
+anonymous_traffic          [  44% ] 20 VUs         15.5s/35s 
+authenticated_traffic      [  34% ] 0100/3000 VUs  15.5s/45.0s
+unknown_endpoint_traffic   [  44% ] 001/020 VUs    15.5s/35s  200.00 iters/s
+
+running (0m16.5s), 0120/3040 VUs, 339577 complete and 0 interrupted iterations
+anonymous_traffic          [  47% ] 20 VUs         16.5s/35s 
+authenticated_traffic      [  37% ] 0100/3000 VUs  16.5s/45.0s
+unknown_endpoint_traffic   [  47% ] 000/020 VUs    16.5s/35s  200.00 iters/s
+
+running (0m17.5s), 0120/3040 VUs, 357849 complete and 0 interrupted iterations
+anonymous_traffic          [  50% ] 20 VUs         17.5s/35s 
+authenticated_traffic      [  39% ] 0100/3000 VUs  17.5s/45.0s
+unknown_endpoint_traffic   [  50% ] 000/020 VUs    17.5s/35s  200.00 iters/s
+
+running (0m18.5s), 0120/3040 VUs, 381580 complete and 0 interrupted iterations
+anonymous_traffic          [  53% ] 20 VUs         18.5s/35s 
+authenticated_traffic      [  41% ] 0100/3000 VUs  18.5s/45.0s
+unknown_endpoint_traffic   [  53% ] 000/020 VUs    18.5s/35s  200.00 iters/s
+
+running (0m19.5s), 0120/3040 VUs, 403454 complete and 0 interrupted iterations
+anonymous_traffic          [  56% ] 20 VUs         19.5s/35s 
+authenticated_traffic      [  43% ] 0100/3000 VUs  19.5s/45.0s
+unknown_endpoint_traffic   [  56% ] 000/020 VUs    19.5s/35s  200.00 iters/s
+
+running (0m20.5s), 0121/3040 VUs, 415241 complete and 0 interrupted iterations
+anonymous_traffic          [  59% ] 20 VUs         20.5s/35s 
+authenticated_traffic      [  46% ] 0100/3000 VUs  20.5s/45.0s
+unknown_endpoint_traffic   [  59% ] 001/020 VUs    20.5s/35s  200.00 iters/s
+
+running (0m21.5s), 0120/3040 VUs, 436932 complete and 0 interrupted iterations
+anonymous_traffic          [  61% ] 20 VUs         21.5s/35s 
+authenticated_traffic      [  48% ] 0100/3000 VUs  21.5s/45.0s
+unknown_endpoint_traffic   [  61% ] 000/020 VUs    21.5s/35s  200.00 iters/s
+
+running (0m22.5s), 0120/3040 VUs, 456119 complete and 0 interrupted iterations
+anonymous_traffic          [  64% ] 20 VUs         22.5s/35s 
+authenticated_traffic      [  50% ] 0100/3000 VUs  22.5s/45.0s
+unknown_endpoint_traffic   [  64% ] 000/020 VUs    22.5s/35s  200.00 iters/s
+
+running (0m23.5s), 0121/3041 VUs, 469490 complete and 0 interrupted iterations
+anonymous_traffic          [  67% ] 20 VUs         23.5s/35s 
+authenticated_traffic      [  52% ] 0100/3000 VUs  23.5s/45.0s
+unknown_endpoint_traffic   [  67% ] 001/021 VUs    23.5s/35s  200.00 iters/s
+
+running (0m24.5s), 0121/3041 VUs, 493003 complete and 0 interrupted iterations
+anonymous_traffic          [  70% ] 20 VUs         24.5s/35s 
+authenticated_traffic      [  54% ] 0100/3000 VUs  24.5s/45.0s
+unknown_endpoint_traffic   [  70% ] 001/021 VUs    24.5s/35s  200.00 iters/s
+
+running (0m25.5s), 0267/3041 VUs, 516088 complete and 0 interrupted iterations
+anonymous_traffic          [  73% ] 20 VUs         25.5s/35s 
+authenticated_traffic      [  57% ] 0247/3000 VUs  25.5s/45.0s
+unknown_endpoint_traffic   [  73% ] 000/021 VUs    25.5s/35s  200.00 iters/s
+
+running (0m26.5s), 0557/3041 VUs, 527524 complete and 0 interrupted iterations
+anonymous_traffic          [  76% ] 20 VUs         26.5s/35s 
+authenticated_traffic      [  59% ] 0536/3000 VUs  26.5s/45.0s
+unknown_endpoint_traffic   [  76% ] 001/021 VUs    26.5s/35s  200.00 iters/s
+
+running (0m27.5s), 0849/3041 VUs, 541322 complete and 0 interrupted iterations
+anonymous_traffic          [  79% ] 20 VUs         27.5s/35s 
+authenticated_traffic      [  61% ] 0826/3000 VUs  27.5s/45.0s
+unknown_endpoint_traffic   [  79% ] 003/021 VUs    27.5s/35s  200.00 iters/s
+
+running (0m28.5s), 1149/3046 VUs, 550121 complete and 0 interrupted iterations
+anonymous_traffic          [  81% ] 20 VUs         28.5s/35s 
+authenticated_traffic      [  63% ] 1111/3000 VUs  28.5s/45.0s
+unknown_endpoint_traffic   [  81% ] 018/026 VUs    28.5s/35s  200.00 iters/s
+
+running (0m29.5s), 1427/3050 VUs, 563476 complete and 0 interrupted iterations
+anonymous_traffic          [  84% ] 20 VUs         29.5s/35s 
+authenticated_traffic      [  66% ] 1406/3000 VUs  29.5s/45.0s
+unknown_endpoint_traffic   [  84% ] 001/030 VUs    29.5s/35s  200.00 iters/s
+
+running (0m30.5s), 1750/3053 VUs, 574140 complete and 0 interrupted iterations
+anonymous_traffic          [  87% ] 20 VUs         30.5s/35s 
+authenticated_traffic      [  68% ] 1698/3000 VUs  30.5s/45.0s
+unknown_endpoint_traffic   [  87% ] 032/033 VUs    30.5s/35s  200.00 iters/s
+
+running (0m31.5s), 2006/3064 VUs, 585538 complete and 0 interrupted iterations
+anonymous_traffic          [  90% ] 20 VUs         31.5s/35s 
+authenticated_traffic      [  70% ] 1986/3000 VUs  31.5s/45.0s
+unknown_endpoint_traffic   [  90% ] 000/044 VUs    31.5s/35s  200.00 iters/s
+
+running (0m32.5s), 2297/3064 VUs, 601221 complete and 0 interrupted iterations
+anonymous_traffic          [  93% ] 20 VUs         32.5s/35s 
+authenticated_traffic      [  72% ] 2277/3000 VUs  32.5s/45.0s
+unknown_endpoint_traffic   [  93% ] 000/044 VUs    32.5s/35s  200.00 iters/s
+
+running (0m33.5s), 2603/3071 VUs, 607193 complete and 0 interrupted iterations
+anonymous_traffic          [  96% ] 20 VUs         33.5s/35s 
+authenticated_traffic      [  74% ] 2538/3000 VUs  33.5s/45.0s
+unknown_endpoint_traffic   [  96% ] 045/051 VUs    33.5s/35s  200.00 iters/s
+
+running (0m34.5s), 2878/3083 VUs, 618107 complete and 0 interrupted iterations
+anonymous_traffic          [  99% ] 20 VUs         34.5s/35s 
+authenticated_traffic      [  77% ] 2857/3000 VUs  34.5s/45.0s
+unknown_endpoint_traffic   [  99% ] 002/063 VUs    34.5s/35s  200.00 iters/s
+
+running (0m35.5s), 2961/3083 VUs, 626066 complete and 0 interrupted iterations
+anonymous_traffic        ↓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  79% ] 2953/3000 VUs  35.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m36.5s), 2568/3083 VUs, 646541 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  81% ] 2568/3000 VUs  36.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m37.5s), 2276/3083 VUs, 660386 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  83% ] 2276/3000 VUs  37.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m38.5s), 1959/3083 VUs, 680078 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  86% ] 1959/3000 VUs  38.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m39.5s), 1669/3083 VUs, 693713 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  88% ] 1669/3000 VUs  39.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m40.5s), 1366/3083 VUs, 707483 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  90% ] 1366/3000 VUs  40.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m41.5s), 1061/3083 VUs, 715419 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  92% ] 1061/3000 VUs  41.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m42.5s), 0756/3083 VUs, 727979 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  94% ] 0756/3000 VUs  42.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m43.5s), 0454/3083 VUs, 741041 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  97% ] 0454/3000 VUs  43.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m44.5s), 0150/3083 VUs, 748311 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic      [  99% ] 0150/3000 VUs  44.5s/45.0s
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+running (0m45.0s), 0000/3083 VUs, 752192 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic    ✓ [ 100% ] 0000/3000 VUs  45s 
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✗ 'p(95)<50' p(95)=165.28ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 752192  16704.124848/s
+    checks_succeeded...: 100.00% 752192 out of 752192
+    checks_failed......: 0.00%   0 out of 752192
+
+    ✓ anon: status is 200 or 429
+    ✓ unknown: status is 404
+    ✓ auth: status is 200 or 429
+
+    CUSTOM
+    anon_limited_429...............: 100.00% 131967 out of 131967
+    anon_success_200...............: 100.00% 1666 out of 1666
+    auth_limited_429...............: 100.00% 33111 out of 33111
+    auth_success_200...............: 100.00% 578636 out of 578636
+    unknown_endpoint_404...........: 100.00% 6812 out of 6812
+
+    HTTP
+    http_req_duration..............: avg=35.96ms min=34.25µs med=5.54ms max=780.23ms p(90)=117.31ms p(95)=165.28ms
+      { expected_response:true }...: avg=42.12ms min=44.37µs med=7.35ms max=683.37ms p(90)=128.79ms p(95)=179.97ms
+    http_req_failed................: 22.85%  171890 out of 752192
+    http_reqs......................: 752192  16704.124848/s
+
+    EXECUTION
+    dropped_iterations.............: 188     4.174965/s
+    iteration_duration.............: avg=42.39ms min=57.04µs med=5.77ms max=874.87ms p(90)=130.6ms  p(95)=191.23ms
+    iterations.....................: 752192  16704.124848/s
+    vus............................: 147     min=25               max=2961
+    vus_max........................: 3083    min=3040             max=3083
+
+    NETWORK
+    data_received..................: 124 MB  2.8 MB/s
+    data_sent......................: 89 MB   2.0 MB/s
+
+
+
+
+running (0m45.0s), 0000/3083 VUs, 752192 complete and 0 interrupted iterations
+anonymous_traffic        ✓ [ 100% ] 20 VUs         35s 
+authenticated_traffic    ✓ [ 100% ] 0000/3000 VUs  45s 
+unknown_endpoint_traffic ✓ [ 100% ] 000/063 VUs    35s  200.00 iters/s
+time="2026-07-29T16:44:13Z" level=error msg="thresholds on metrics 'http_req_duration' have been crossed"
+=== k6 finished (heavy load), sleeping so results can be copied out ===

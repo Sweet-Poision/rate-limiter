@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-loadtest-low
+  namespace: ratelimiter
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command:
+            - sh
+            - -c
+            - |
+              k6 run --summary-export=/output/summary.json /scripts/load-test.js
+              echo "=== k6 finished (low load), sleeping so results can be copied out ==="
+              sleep 300
+          env:
+            - name: LOAD_LEVEL
+              value: "low"
+            - name: K6_WEB_DASHBOARD
+              value: "true"
+            - name: K6_WEB_DASHBOARD_EXPORT
+              value: "/output/report.html"
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+            - name: output
+              mountPath: /output
+      volumes:
+        - name: script
+          configMap:
+            name: k6-script
+        - name: output
+          emptyDir: {}

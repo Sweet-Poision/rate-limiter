@@ -27,6 +27,14 @@ func NewPostgresStore(dbURL string) (*PostgresStore, error) {
 	return &PostgresStore{db: db}, nil
 }
 
+// NewPostgresStoreWithDB wraps an existing *sql.DB directly, skipping the
+// dial/ping step. Exists specifically so tests can inject sqlmock's fake
+// *sql.DB instead of requiring a real Postgres instance to exercise
+// DB-dependent code paths (e.g. the negative-cache miss path in Registry).
+func NewPostgresStoreWithDB(db *sql.DB) *PostgresStore {
+	return &PostgresStore{db: db}
+}
+
 func (p *PostgresStore) LoadAllEndpoints() (map[string]domain.EndpointData, error) {
 	query := "SELECT path, refill_wait_time_ms, max_limit FROM endpoints"
 	rows, err := p.db.Query(query)
