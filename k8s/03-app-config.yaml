@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ratelimiter-config
+  namespace: ratelimiter
+data:
+  DATABASE_URL: "postgres://admin:secret@postgres:5432/gateway?sslmode=disable"
+  REDIS_ADDR: "redis:6379"
+  SERVER_PORT: "8080"

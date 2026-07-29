@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"ratelimiter/internal/domain"
+	"ratelimiter/internal/metrics"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -17,6 +18,12 @@ type RedisStore struct {
 	script *redis.Script
 }
 
+// FIXED: previous formula was `elapsed * (max_limit / refill_rate_ms)`, which
+// made the refill amount scale with max_limit and ignored elapsed time
+// correctly — a 1000-capacity bucket refilled to full in ~1ms regardless of
+// how much time had actually passed. Correct formula mirrors the original Go
+// version: tokens added = elapsed_ms / refill_rate_ms (one token per
+// refill_rate_ms of elapsed time), independent of max_limit.
 const luaScript = `
 local key = KEYS[1]
 local refill_rate_ms = tonumber(ARGV[1])
@@ -33,7 +40,7 @@ if tokens == nil then
 else
     local elapsed = now - last_updated
     if elapsed > 0 then
-        local added = elapsed * (max_limit / refill_rate_ms)
+        local added = elapsed / refill_rate_ms
         tokens = math.min(max_limit, tokens + added)
         last_updated = now
     end
@@ -64,6 +71,10 @@ func NewRedisStore(addr string) *RedisStore {
 }
 
 func (r *RedisStore) EvaluateRateLimit(ctx context.Context, userID string, data domain.EndpointData) (bool, error) {
+	start := time.Now()
+	defer func() {
+		metrics.RedisEvalDuration.Observe(time.Since(start).Seconds())
+	}()
 	redisKey := fmt.Sprintf("rate_limit:%s:%s", userID, data.Path)
 	now := time.Now().UnixMilli()
 

@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ratelimiter-seed
+  namespace: ratelimiter
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: ratelimiter:dev
+          imagePullPolicy: IfNotPresent
+          command: ["./seed"]
+          envFrom:
+            - configMapRef:
+                name: ratelimiter-config

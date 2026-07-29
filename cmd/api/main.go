@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"ratelimiter/internal/config"
 	"ratelimiter/internal/domain"
 	"ratelimiter/internal/limiter"
 	"ratelimiter/internal/middleware"
 	"ratelimiter/internal/repository"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +48,7 @@ func main() {
 	rlMiddleware := middleware.NewRateLimiter(registry, redisStore)
 
 	http.HandleFunc("/health", healthHandler)
+	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/api/", rlMiddleware.Handle(limitedHandler))
 
 	fmt.Printf("Server listening on port %s...\n", cfg.ServerPort)

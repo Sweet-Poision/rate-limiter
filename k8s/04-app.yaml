@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimiter
+  namespace: ratelimiter
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ratelimiter
+  template:
+    metadata:
+      labels:
+        app: ratelimiter
+    spec:
+      containers:
+        - name: ratelimiter
+          image: ratelimiter:dev
+          imagePullPolicy: IfNotPresent   # OrbStack shares its image store with Kubernetes directly — no push/load step needed
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: ratelimiter-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratelimiter
+  namespace: ratelimiter
+spec:
+  selector:
+    app: ratelimiter
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
