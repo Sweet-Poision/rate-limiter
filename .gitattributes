@@ -1,0 +1,7 @@
+# Mark generated load-test reports as vendored/generated so GitHub's
+# language detector (linguist) excludes them from the repo's language
+# stats. Without this, three ~167KB k6 dashboard HTML exports outweigh
+# the actual Go source code in raw bytes, making the repo display as
+# "mostly HTML" instead of Go — a misleading signal for anyone browsing it.
+results/**/*.html linguist-generated=true
+results/**/*.json linguist-generated=true
