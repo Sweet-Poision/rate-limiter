@@ -1,5 +1,17 @@
 # Distributed Rate Limiter / API Gateway (Go + Redis + Postgres + Kubernetes)
 
+<p align="center">
+  <img src="social-preview.png" width="800" alt="Distributed Rate Limiter">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis">
+  <img src="https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white" alt="Kubernetes">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker">
+</p>
+
 A per-user, per-endpoint token bucket rate limiter, built incrementally from a
 single-process in-memory design into a distributed, Redis-backed service
 deployed across multiple Kubernetes replicas — with every major design
@@ -13,6 +25,21 @@ after the fact.
   goroutine). Kept intentionally, not deleted, because the reason it was
   replaced (state not shared across instances) is itself part of the story —
   see "Why the design changed" below.
+
+## Table of Contents
+
+- [Problem Statement](#problem-statement)
+- [Why the Design Changed](#why-the-design-changed)
+- [Architecture](#architecture)
+- [Design Decisions](#design-decisions)
+- [Known Bugs Found and Fixed During Development](#known-bugs-found-and-fixed-during-development)
+- [Known Limitations and Future Work](#known-limitations-and-future-work)
+- [Testing](#testing)
+- [Running Locally (no Kubernetes)](#running-locally-no-kubernetes)
+- [Running on Kubernetes (Local)](#running-on-kubernetes-local)
+- [Cross-Replica Correctness Proof](#cross-replica-correctness-proof)
+- [Load Test Results](#load-test-results)
+- [Tech Stack](#tech-stack)
 
 ## Problem Statement
 
@@ -147,7 +174,7 @@ for precise per-user limiting is requiring authentication, not fingerprinting.
    environment (local vs. cluster) sometimes surfaces a completely
    separate, unrelated bug.
 
-## Known Limitations / Future Work
+## Known Limitations and Future Work
 
 - **Config is static once cached**, refreshed only via explicit Redis
   pubsub updates — no polling fallback if a pubsub message is dropped
@@ -188,7 +215,10 @@ curl -i http://localhost:8080/health
 curl -i -H "X-User-Id: 5" http://localhost:8080/api/v1/health1
 ```
 
-## Running on Kubernetes (local, via OrbStack — adaptable to `kind`/minikube)
+## Running on Kubernetes (Local)
+
+Tested via OrbStack's local Kubernetes — adaptable to `kind` or minikube
+with no changes beyond how you build/load the image.
 
 **1. Build the image:**
 ```bash
@@ -252,6 +282,17 @@ per pod) before exhausting the limit. It didn't — confirming Redis, not any
 single pod's memory, is the actual source of truth.
 
 ## Load Test Results
+
+**Test environment**: entire stack (Postgres, Redis, 3 app replicas,
+Prometheus, and the k6 load generator itself) ran on a single MacBook Air
+M1, 8GB RAM, via OrbStack's local Kubernetes — all sharing one machine's
+CPU and unified memory pool, not dedicated hardware per component. This is
+a genuinely constrained environment for the heavy tier's 3000 concurrent
+VUs, and is the direct explanation for both the heavy-tier threshold
+failure and its run-to-run variance discussed below — not a flaw in the
+rate limiter's logic. Sustaining 25k+ req/s and degrading gracefully
+(zero check failures, zero crashes) under that load, on this hardware, is
+the more meaningful comparison than any single p95 number in isolation.
 
 `load-test.js` runs three scenarios simultaneously — authenticated,
 anonymous (IP-fallback), and unknown-endpoint traffic — at a `LOAD_LEVEL` of
